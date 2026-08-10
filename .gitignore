@@ -1,0 +1,42 @@
+# .NET build and IDE output
+[Bb]in/
+[Oo]bj/
+.vs/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.pfx
+
+# SQL Server local database files
+*.mdf
+*.ndf
+*.ldf
+
+# Python environments and generated files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.temp
+
+# Generated model artifacts (recreated by training)
+ai-service/models/*.joblib
+ai-service/models/model_metadata.json
+!ai-service/models/.gitkeep
