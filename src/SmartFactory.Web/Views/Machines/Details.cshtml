@@ -1,0 +1,37 @@
+@model Machine
+
+@{
+    ViewData["Title"] = "Makine Detayı";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Code</h1>
+        <p class="text-muted mb-0">Makine detayları</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Düzenle</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Listeye Dön</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Name)</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.MachineCategory)</dt>
+            <dd class="col-sm-8">@Model.MachineCategory</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Manufacturer)</dt>
+            <dd class="col-sm-8">@(Model.Manufacturer ?? "-")</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Model)</dt>
+            <dd class="col-sm-8">@(Model.Model ?? "-")</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Status)</dt>
+            <dd class="col-sm-8">@Model.Status</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.InstallationDate)</dt>
+            <dd class="col-sm-8">@Model.InstallationDate.ToString("dd.MM.yyyy")</dd>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CreatedAt)</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+        </dl>
+    </div>
+</div>
