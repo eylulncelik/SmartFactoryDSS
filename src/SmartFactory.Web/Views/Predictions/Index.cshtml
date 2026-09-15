@@ -1,0 +1,133 @@
+@model IEnumerable<PredictionHistory>
+
+@{
+    ViewData["Title"] = "AI Risk Tahmin Geçmişi";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">AI Arıza Riski Tahmin Geçmişi</h1>
+        <p class="text-muted mb-0">Makineler için yapay zeka tarafından üretilen arıza olasılıkları ve karar destek analizleri.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        + Yeni Tahmin Simülasyonu
+    </a>
+</div>
+
+@if (ViewBag.IsAiServiceOnline is false)
+{
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <div>
+            <strong>Yapay Zeka Servisi Çevrimdışı:</strong> FastAPI tahmin servisine (`http://127.0.0.1:8000`) ulaşılamıyor. Yeni tahmin çalıştırmak için arka planda AI servisini başlatmalısınız. Geçmiş kayıtlar görüntülenebilir durumdadır.
+        </div>
+    </div>
+}
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Makineye Göre Filtrele</label>
+                <select name="machineId" asp-items="ViewBag.FilterMachines" class="form-select">
+                    <option value="">Tüm Makineler</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label fw-semibold">Risk Seviyesine Göre Filtrele</label>
+                <select name="riskLevel" asp-items="ViewBag.FilterRiskLevels" class="form-select"></select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary flex-grow-1">Filtrele</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Sıfırla</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Makine</th>
+                        <th>Arıza Olasılığı</th>
+                        <th>Risk Seviyesi</th>
+                        <th>Öneri</th>
+                        <th>Tahmin Zamanı</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Henüz kaydedilmiş bir arıza riski tahmini bulunmuyor.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        var riskBadgeClass = item.RiskLevel switch
+                        {
+                            "Kritik" => "bg-danger text-white",
+                            "Yüksek" => "bg-warning text-dark",
+                            "Orta" => "bg-info text-dark",
+                            _ => "bg-success text-white"
+                        };
+
+                        var probPercent = (item.FailureProbability * 100).ToString("F1") + "%";
+
+                        <tr>
+                            <td>
+                                @if (item.Machine is not null)
+                                {
+                                    <span class="badge bg-dark me-1">@item.Machine.Code</span>
+                                    <span class="small text-muted">@item.Machine.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                        <div class="progress-bar @(item.FailureProbability > 0.6 ? "bg-danger" : item.FailureProbability > 0.3 ? "bg-warning" : "bg-success")"
+                                             role="progressbar"
+                                             style="width: @(Math.Min(item.FailureProbability * 100, 100))%">
+                                        </div>
+                                    </div>
+                                    <span class="fw-bold small">@probPercent</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge @riskBadgeClass">@item.RiskLevel</span>
+                            </td>
+                            <td class="text-truncate" style="max-width: 280px;" title="@item.Recommendation">
+                                @item.Recommendation
+                            </td>
+                            <td class="small text-muted">
+                                @item.PredictedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">İncele</a>
+                                <a asp-controller="Maintenances" asp-action="Create" asp-route-machineId="@item.MachineId" class="btn btn-sm btn-outline-success">Bakım Aç</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

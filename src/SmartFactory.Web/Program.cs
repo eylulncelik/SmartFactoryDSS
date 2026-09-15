@@ -23,6 +23,13 @@ builder.Services
         "Risk thresholds must be in ascending order.")
     .ValidateOnStart();
 
+var aiServiceBaseUrl = builder.Configuration.GetValue<string>("AiService:BaseUrl") ?? "http://127.0.0.1:8000";
+builder.Services.AddHttpClient<SmartFactory.Web.Services.IAiPredictionService, SmartFactory.Web.Services.AiPredictionService>(client =>
+{
+    client.BaseAddress = new Uri(aiServiceBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

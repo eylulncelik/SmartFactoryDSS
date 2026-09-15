@@ -28,6 +28,7 @@ public sealed class MachinesController(ApplicationDbContext context) : Controlle
 
         var machine = await _context.Machines
             .Include(item => item.Maintenances.OrderByDescending(m => m.ScheduledDate))
+            .Include(item => item.PredictionHistories.OrderByDescending(p => p.PredictedAt))
             .AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == id);
 

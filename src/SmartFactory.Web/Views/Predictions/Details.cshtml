@@ -1,0 +1,173 @@
+@model PredictionHistory
+
+@{
+    ViewData["Title"] = "Tahmin Detayı";
+
+    var riskBadgeClass = Model.RiskLevel switch
+    {
+        "Kritik" => "bg-danger text-white",
+        "Yüksek" => "bg-warning text-dark",
+        "Orta" => "bg-info text-dark",
+        _ => "bg-success text-white"
+    };
+
+    var alertClass = Model.RiskLevel switch
+    {
+        "Kritik" => "alert-danger",
+        "Yüksek" => "alert-warning",
+        "Orta" => "alert-info",
+        _ => "alert-success"
+    };
+
+    var probPercent = (Model.FailureProbability * 100).ToString("F1") + "%";
+    var tempDiff = (Model.ProcessTemperature_C - Model.AirTemperature_C).ToString("F1");
+    var powerKw = ((Model.RotationalSpeed_RPM * Model.Torque_Nm * 2 * Math.PI / 60) / 1000.0).ToString("F2");
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h3 mb-0">Arıza Riski Analiz Raporu</h1>
+            <span class="badge @riskBadgeClass fs-6">@Model.RiskLevel Risk</span>
+        </div>
+        <p class="text-muted mb-0">Tahmin Kaydı #@Model.Id &bull; @Model.PredictedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Maintenances" asp-action="Create" asp-route-machineId="@Model.MachineId" class="btn btn-outline-success">
+            + Bakım Planla
+        </a>
+        <a asp-action="Create" asp-route-machineId="@Model.MachineId" class="btn btn-primary">Yeni Tahmin</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Listeye Dön</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Yapay Zeka Karar Destek Sonucu</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded mb-3">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">24 Saat İçinde Arıza Olasılığı</span>
+                        <h2 class="display-6 fw-bold mb-0 text-@(Model.FailureProbability > 0.6 ? "danger" : Model.FailureProbability > 0.3 ? "warning" : "success")">
+                            @probPercent
+                        </h2>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small text-uppercase fw-bold">Arıza Öngörüsü</span>
+                        <h4 class="mb-0">
+                            @(Model.FailurePredicted ? "🚨 Arıza Bekleniyor" : "✅ Normal Çalışma")
+                        </h4>
+                    </div>
+                </div>
+
+                <div class="progress mb-3" style="height: 10px;">
+                    <div class="progress-bar @(Model.FailureProbability > 0.6 ? "bg-danger" : Model.FailureProbability > 0.3 ? "bg-warning" : "bg-success")"
+                         role="progressbar"
+                         style="width: @(Math.Min(Model.FailureProbability * 100, 100))%">
+                    </div>
+                </div>
+
+                <div class="alert @alertClass mb-0">
+                    <h6 class="alert-heading fw-bold mb-1">🎯 Karar Destek Önerisi:</h6>
+                    <p class="mb-0">@Model.Recommendation</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Analiz Edilen Sensör Telemetrisi</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Ortam Hava Sıcaklığı</dt>
+                    <dd class="col-sm-6">@Model.AirTemperature_C °C</dd>
+
+                    <dt class="col-sm-6">Proses Sıcaklığı</dt>
+                    <dd class="col-sm-6">@Model.ProcessTemperature_C °C</dd>
+
+                    <dt class="col-sm-6">Sıcaklık Farkı (Proses - Hava)</dt>
+                    <dd class="col-sm-6"><span class="badge text-bg-light border">+@tempDiff °C</span></dd>
+
+                    <dt class="col-sm-6">Dönme Hızı (RPM)</dt>
+                    <dd class="col-sm-6">@Model.RotationalSpeed_RPM RPM</dd>
+
+                    <dt class="col-sm-6">Tork Değeri</dt>
+                    <dd class="col-sm-6">@Model.Torque_Nm Nm</dd>
+
+                    <dt class="col-sm-6">Hesaplanan Mekanik Güç</dt>
+                    <dd class="col-sm-6"><span class="badge text-bg-light border">@powerKw kW</span></dd>
+
+                    <dt class="col-sm-6">Takım Aşınma Süresi</dt>
+                    <dd class="col-sm-6">@Model.ToolWear_Min Dakika</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">İlgili Makine</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Machine is not null)
+                {
+                    <h5 class="fw-bold mb-1">@Model.Machine.Code</h5>
+                    <p class="text-muted mb-3">@Model.Machine.Name</p>
+                    <ul class="list-unstyled small mb-3">
+                        <li><strong>Kategori:</strong> @Model.Machine.MachineCategory</li>
+                        <li><strong>Üretici:</strong> @(Model.Machine.Manufacturer ?? "-")</li>
+                        <li><strong>Model:</strong> @(Model.Machine.Model ?? "-")</li>
+                        <li><strong>Durum:</strong> <span class="badge text-bg-light border">@Model.Machine.Status</span></li>
+                    </ul>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Machines" asp-action="Details" asp-route-id="@Model.Machine.Id" class="btn btn-sm btn-outline-primary">
+                            Makine Sayfasına Git
+                        </a>
+                        <a asp-controller="Maintenances" asp-action="Create" asp-route-machineId="@Model.Machine.Id" class="btn btn-sm btn-success">
+                            Bu Makineye Bakım Emri Oluştur
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Makine bilgisi bulunamadı.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Eşik Değerleri Kılavuzu</h5>
+            </div>
+            <div class="card-body small">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <span class="badge bg-success me-1">0% - 30%</span> <strong>Düşük Risk:</strong> Normal operasyon.
+                    </li>
+                    <li class="mb-2">
+                        <span class="badge bg-info text-dark me-1">30% - 60%</span> <strong>Orta Risk:</strong> Anormal telemetri eğilimi.
+                    </li>
+                    <li class="mb-2">
+                        <span class="badge bg-warning text-dark me-1">60% - 80%</span> <strong>Yüksek Risk:</strong> 24 saatte arıza riski.
+                    </li>
+                    <li>
+                        <span class="badge bg-danger me-1">> 80%</span> <strong>Kritik Risk:</strong> Acil müdahale gerektirir.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -8,6 +8,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 {
     public DbSet<Machine> Machines => Set<Machine>();
     public DbSet<Maintenance> Maintenances => Set<Maintenance>();
+    public DbSet<PredictionHistory> PredictionHistories => Set<PredictionHistory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +39,21 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             entity.HasIndex(m => m.MachineId);
             entity.HasIndex(m => m.ScheduledDate);
             entity.HasIndex(m => m.Status);
+        });
+
+        modelBuilder.Entity<PredictionHistory>(entity =>
+        {
+            entity.Property(p => p.RiskLevel).HasMaxLength(30);
+            entity.Property(p => p.Recommendation).HasMaxLength(500);
+
+            entity.HasOne(p => p.Machine)
+                .WithMany(machine => machine.PredictionHistories)
+                .HasForeignKey(p => p.MachineId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(p => p.MachineId);
+            entity.HasIndex(p => p.PredictedAt);
+            entity.HasIndex(p => p.RiskLevel);
         });
     }
 }

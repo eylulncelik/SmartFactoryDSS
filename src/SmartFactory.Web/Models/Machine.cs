@@ -40,4 +40,5 @@ public sealed class Machine
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Maintenance> Maintenances { get; set; } = [];
+    public ICollection<PredictionHistory> PredictionHistories { get; set; } = [];
 }
