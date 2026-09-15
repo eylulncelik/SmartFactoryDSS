@@ -1,0 +1,125 @@
+@model IEnumerable<Maintenance>
+
+@{
+    ViewData["Title"] = "Bakım Yönetimi";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Bakım Yönetimi</h1>
+        <p class="text-muted mb-0">Tüm makinelere ait planlı, arıza ve periyodik bakım kayıtlarını izleyin ve yönetin.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">Yeni Bakım Kaydı Ekle</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Makineye Göre Filtrele</label>
+                <select name="machineId" asp-items="ViewBag.FilterMachines" class="form-select">
+                    <option value="">Tüm Makineler</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Duruma Göre Filtrele</label>
+                <select name="status" asp-items="Html.GetEnumSelectList<MaintenanceStatus>()" class="form-select">
+                    <option value="">Tüm Durumlar</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Önceliğe Göre Filtrele</label>
+                <select name="priority" asp-items="Html.GetEnumSelectList<MaintenancePriority>()" class="form-select">
+                    <option value="">Tüm Öncelikler</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary flex-grow-1">Filtrele</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Sıfırla</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Makine</th>
+                        <th>Bakım Başlığı</th>
+                        <th>Tür</th>
+                        <th>Öncelik</th>
+                        <th>Durum</th>
+                        <th>Planlanan Tarih</th>
+                        <th>Maliyet</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">Kriterlere uygun bakım kaydı bulunamadı.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        var statusBadge = item.Status switch
+                        {
+                            MaintenanceStatus.Completed => "text-bg-success",
+                            MaintenanceStatus.InProgress => "text-bg-primary",
+                            MaintenanceStatus.Scheduled => "text-bg-warning",
+                            _ => "text-bg-secondary"
+                        };
+
+                        var priorityBadge = item.Priority switch
+                        {
+                            MaintenancePriority.Critical => "bg-danger text-white",
+                            MaintenancePriority.High => "bg-warning text-dark",
+                            MaintenancePriority.Medium => "bg-info text-dark",
+                            _ => "bg-light text-dark border"
+                        };
+
+                        <tr>
+                            <td>
+                                @if (item.Machine is not null)
+                                {
+                                    <span class="badge bg-dark me-1">@item.Machine.Code</span>
+                                    <span class="small text-muted">@item.Machine.Name</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="fw-semibold">@item.Title</td>
+                            <td><span class="small">@item.Type</span></td>
+                            <td><span class="badge @priorityBadge">@item.Priority</span></td>
+                            <td><span class="badge @statusBadge">@item.Status</span></td>
+                            <td>@item.ScheduledDate.ToString("dd.MM.yyyy")</td>
+                            <td>@(item.Cost.HasValue ? item.Cost.Value.ToString("N2") + " ₺" : "-")</td>
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Detay</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Düzenle</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Sil</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

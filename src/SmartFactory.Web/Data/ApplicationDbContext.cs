@@ -7,6 +7,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     : DbContext(options)
 {
     public DbSet<Machine> Machines => Set<Machine>();
+    public DbSet<Maintenance> Maintenances => Set<Maintenance>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -20,6 +21,23 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             entity.Property(machine => machine.MachineCategory).HasMaxLength(50);
             entity.Property(machine => machine.Manufacturer).HasMaxLength(100);
             entity.Property(machine => machine.Model).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Maintenance>(entity =>
+        {
+            entity.Property(m => m.Title).HasMaxLength(120);
+            entity.Property(m => m.Description).HasMaxLength(1000);
+            entity.Property(m => m.PerformedBy).HasMaxLength(100);
+            entity.Property(m => m.Cost).HasPrecision(18, 2);
+
+            entity.HasOne(m => m.Machine)
+                .WithMany(machine => machine.Maintenances)
+                .HasForeignKey(m => m.MachineId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(m => m.MachineId);
+            entity.HasIndex(m => m.ScheduledDate);
+            entity.HasIndex(m => m.Status);
         });
     }
 }

@@ -1,0 +1,60 @@
+@model Maintenance
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="MachineId" class="form-label"></label>
+        <select asp-for="MachineId" asp-items="ViewBag.MachineList" class="form-select">
+            <option value="">-- Makine Seçiniz --</option>
+        </select>
+        <span asp-validation-for="MachineId" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" placeholder="Örn. Rulman Değişimi ve Yağlama" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Type" class="form-label"></label>
+        <select asp-for="Type" asp-items="Html.GetEnumSelectList<MaintenanceType>()" class="form-select"></select>
+        <span asp-validation-for="Type" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Priority" class="form-label"></label>
+        <select asp-for="Priority" asp-items="Html.GetEnumSelectList<MaintenancePriority>()" class="form-select"></select>
+        <span asp-validation-for="Priority" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<MaintenanceStatus>()" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ScheduledDate" class="form-label"></label>
+        <input asp-for="ScheduledDate" type="date" class="form-control" />
+        <span asp-validation-for="ScheduledDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="CompletedDate" class="form-label"></label>
+        <input asp-for="CompletedDate" type="date" class="form-control" />
+        <span asp-validation-for="CompletedDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="PerformedBy" class="form-label"></label>
+        <input asp-for="PerformedBy" class="form-control" placeholder="Örn. Ahmet Usta / Mekanik Ekibi" />
+        <span asp-validation-for="PerformedBy" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Cost" class="form-label"></label>
+        <div class="input-group">
+            <span class="input-group-text">₺</span>
+            <input asp-for="Cost" class="form-control" type="number" step="0.01" placeholder="0.00" />
+        </div>
+        <span asp-validation-for="Cost" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Bakım kapsamı, yapılan işlemler veya değişen parçalar..."></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+</div>

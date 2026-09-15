@@ -38,4 +38,6 @@ public sealed class Machine
 
     [Display(Name = "Oluşturulma Tarihi")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Maintenance> Maintenances { get; set; } = [];
 }

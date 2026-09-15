@@ -27,6 +27,7 @@ public sealed class MachinesController(ApplicationDbContext context) : Controlle
         }
 
         var machine = await _context.Machines
+            .Include(item => item.Maintenances.OrderByDescending(m => m.ScheduledDate))
             .AsNoTracking()
             .FirstOrDefaultAsync(item => item.Id == id);
 
@@ -128,6 +129,13 @@ public sealed class MachinesController(ApplicationDbContext context) : Controlle
         if (machine is null)
         {
             return NotFound();
+        }
+
+        var hasMaintenances = await _context.Maintenances.AnyAsync(m => m.MachineId == id);
+        if (hasMaintenances)
+        {
+            TempData["ErrorMessage"] = "Bu makineye ait bakım kayıtları bulunduğu için makine silinemez. Önce ilişkili bakım kayıtlarını silmelisiniz.";
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         _context.Machines.Remove(machine);

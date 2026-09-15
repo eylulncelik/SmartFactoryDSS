@@ -1,0 +1,106 @@
+@model Maintenance
+
+@{
+    ViewData["Title"] = "Bakım Detayı";
+
+    var statusBadge = Model.Status switch
+    {
+        MaintenanceStatus.Completed => "text-bg-success",
+        MaintenanceStatus.InProgress => "text-bg-primary",
+        MaintenanceStatus.Scheduled => "text-bg-warning",
+        _ => "text-bg-secondary"
+    };
+
+    var priorityBadge = Model.Priority switch
+    {
+        MaintenancePriority.Critical => "bg-danger text-white",
+        MaintenancePriority.High => "bg-warning text-dark",
+        MaintenancePriority.Medium => "bg-info text-dark",
+        _ => "bg-light text-dark border"
+    };
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="h3 mb-0">@Model.Title</h1>
+            <span class="badge @statusBadge">@Model.Status</span>
+            <span class="badge @priorityBadge">@Model.Priority</span>
+        </div>
+        <p class="text-muted mb-0">Bakım Kayıt No: #@Model.Id</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Düzenle</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Listeye Dön</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">Bakım Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Bakım Türü</dt>
+                    <dd class="col-sm-8">@Model.Type</dd>
+
+                    <dt class="col-sm-4">Planlanan Tarih</dt>
+                    <dd class="col-sm-8">@Model.ScheduledDate.ToString("dd.MM.yyyy")</dd>
+
+                    <dt class="col-sm-4">Tamamlanma Tarihi</dt>
+                    <dd class="col-sm-8">@(Model.CompletedDate.HasValue ? Model.CompletedDate.Value.ToString("dd.MM.yyyy") : "Henüz Tamamlanmadı")</dd>
+
+                    <dt class="col-sm-4">Teknisyen / Ekip</dt>
+                    <dd class="col-sm-8">@(Model.PerformedBy ?? "-")</dd>
+
+                    <dt class="col-sm-4">Tahmini / Gerçekleşen Maliyet</dt>
+                    <dd class="col-sm-8">@(Model.Cost.HasValue ? Model.Cost.Value.ToString("N2") + " ₺" : "-")</dd>
+
+                    <dt class="col-sm-4">Kayıt Tarihi</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-4">Açıklama / Notlar</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Description) ? "-" : Model.Description)</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0">İlgili Makine</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Machine is not null)
+                {
+                    <h6 class="fw-bold mb-1">@Model.Machine.Code</h6>
+                    <p class="text-muted mb-2">@Model.Machine.Name</p>
+                    <ul class="list-unstyled small mb-3">
+                        <li><strong>Kategori:</strong> @Model.Machine.MachineCategory</li>
+                        <li><strong>Üretici:</strong> @(Model.Machine.Manufacturer ?? "-")</li>
+                        <li><strong>Model:</strong> @(Model.Machine.Model ?? "-")</li>
+                        <li><strong>Durum:</strong> <span class="badge text-bg-light border">@Model.Machine.Status</span></li>
+                    </ul>
+                    <a asp-controller="Machines" asp-action="Details" asp-route-id="@Model.Machine.Id" class="btn btn-sm btn-outline-primary w-100">
+                        Makine Detayına Git
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Makine bilgisi bulunamadı.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <h6 class="text-danger fw-bold">Kaydı Sil</h6>
+                <p class="small text-muted mb-2">Bu bakım kaydını sistemden kalıcı olarak kaldırmak için:</p>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">Bakım Kaydını Sil</a>
+            </div>
+        </div>
+    </div>
+</div>
